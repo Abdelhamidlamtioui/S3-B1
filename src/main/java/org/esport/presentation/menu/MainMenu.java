@@ -4,10 +4,13 @@ import org.esport.controller.PlayerController;
 import org.esport.controller.TeamController;
 import org.esport.controller.TournementController;
 import org.esport.controller.GameController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Scanner;
 
 public class MainMenu {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainMenu.class);
     private final PlayerController playerController;
     private final TeamController teamController;
     private final TournementController tournementController;
@@ -26,13 +29,13 @@ public class MainMenu {
     public void displayMainMenu() {
         boolean continueRunning = true;
         while (continueRunning) {
-            System.out.println("Main Menu:");
-            System.out.println("1. Player Management");
-            System.out.println("2. Team Management");
-            System.out.println("3. Tournement Management");
-            System.out.println("4. Game Management");
-            System.out.println("0. Exit");
-            System.out.print("Choose an option: ");
+            LOGGER.info("Main Menu:");
+            LOGGER.info("1. Player Management");
+            LOGGER.info("2. Team Management");
+            LOGGER.info("3. Tournement Management");
+            LOGGER.info("4. Game Management");
+            LOGGER.info("0. Exit");
+            LOGGER.info("Choose an option: ");
 
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume the newline
@@ -54,7 +57,7 @@ public class MainMenu {
                     continueRunning = false;
                     break;
                 default:
-                    System.out.println("Invalid option. Please try again.");
+                    LOGGER.warn("Invalid option. Please try again.");
             }
         }
         scanner.close();

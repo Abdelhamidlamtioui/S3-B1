@@ -36,18 +36,18 @@ public class TournementMenu {
         int choice = -1;
         do {
             try {
-                System.out.println("\n--- Tournement Menu ---");
-                System.out.println("1. Create a tournement");
-                System.out.println("2. Edit a tournement");
-                System.out.println("3. Delete a tournement");
-                System.out.println("4. Display a tournement");
-                System.out.println("5. Display all tournements");
-                System.out.println("6. Add a team to a tournement");
-                System.out.println("7. Remove a team from a tournement");
-                System.out.println("8. Calculate estimated duration of a tournement");
-                System.out.println("9. Change tournement status");
-                System.out.println("0. Return to main menu");
-                System.out.print("Your choice: ");
+                LOGGER.info("\n--- Tournement Menu ---");
+                LOGGER.info("1. Create a tournement");
+                LOGGER.info("2. Edit a tournement");
+                LOGGER.info("3. Delete a tournement");
+                LOGGER.info("4. Display a tournement");
+                LOGGER.info("5. Display all tournements");
+                LOGGER.info("6. Add a team to a tournement");
+                LOGGER.info("7. Remove a team from a tournement");
+                LOGGER.info("8. Calculate estimated duration of a tournement");
+                LOGGER.info("9. Change tournement status");
+                LOGGER.info("0. Return to main menu");
+                LOGGER.info("Your choice: ");
                 choice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline
 
@@ -80,26 +80,23 @@ public class TournementMenu {
                         changeTournementStatus();
                         break;
                     case 0:
-                        System.out.println("Returning to main menu...");
+                        LOGGER.info("Returning to main menu...");
                         break;
                     default:
-                        System.out.println("Invalid choice. Please try again.");
+                        LOGGER.warn("Invalid choice. Please try again.");
                 }
             } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a number.");
+                LOGGER.error("Invalid input. Please enter a number.");
                 scanner.nextLine(); // Clear the invalid input
             }
         } while (choice != 0);
     }
 
     private void createTournement() {
-        System.out.println("Creating a new tournement");
+        LOGGER.info("Creating a new tournement");
         String title = ValidationUtil.readNonEmptyString(scanner, "Enter tournement title:");
-
         Long gameId = ValidationUtil.readPositiveLong(scanner, "Enter game ID for this tournement:");
-
-        LocalDate startDate = ValidationUtil.readDate(scanner, "Enter start date (format: dd/MM/yyyy):",
-                "dd/MM/yyyy");
+        LocalDate startDate = ValidationUtil.readDate(scanner, "Enter start date (format: dd/MM/yyyy):", "dd/MM/yyyy");
 
         LocalDate endDate;
         while (true) {
@@ -108,7 +105,7 @@ public class TournementMenu {
                 ValidationUtil.validateDates(startDate, endDate);
                 break; // Exit loop if dates are valid
             } catch (IllegalArgumentException e) {
-                System.out.println("Error: " + e.getMessage() + " Please enter a new end date.");
+                LOGGER.error("Error: {}. Please enter a new end date.", e.getMessage());
             }
         }
 
@@ -121,41 +118,36 @@ public class TournementMenu {
             Tournement newTournement = tournementController.createTournement(title, gameId, startDate, endDate, spectatorCount,
                     averageMatchDuration, ceremonyTime, pauseBetweenMatches);
             if (newTournement != null) {
-                System.out.println("Tournement created successfully. ID: " + newTournement.getId());
+                LOGGER.info("Tournement created successfully. ID: {}", newTournement.getId());
             } else {
-                System.out.println("Error creating tournement.");
+                LOGGER.error("Error creating tournement.");
             }
         } catch (IllegalArgumentException e) {
-            System.out.println("Error: " + e.getMessage());
+            LOGGER.error("Error: {}", e.getMessage());
         }
     }
 
     private void editTournement() {
-        System.out.println("Editing a tournement");
-        System.out.print("Enter tournement ID to edit: ");
-        Long id = scanner.nextLong();
-        scanner.nextLine(); // Consume newline
-
+        LOGGER.info("Editing a tournement");
+        Long id = ValidationUtil.readPositiveLong(scanner, "Enter tournement ID to edit:");
         Optional<Tournement> tournementOptional = tournementController.getTournement(id);
+
         if (tournementOptional.isPresent()) {
             Tournement tournement = tournementOptional.get();
-            System.out.print("Enter new title (or press Enter to keep current): ");
-            String newTitle = scanner.nextLine();
+            String newTitle = ValidationUtil.readNonEmptyString(scanner, "Enter new title (or press Enter to keep current):");
             if (newTitle.isEmpty()) {
                 newTitle = tournement.getTitle();
             }
 
-            System.out.print("Enter new start date (dd/MM/yyyy) (or press Enter to keep current): ");
+            LOGGER.info("Enter new start date (dd/MM/yyyy) (or press Enter to keep current): ");
             String startDateStr = scanner.nextLine();
-            LocalDate newStartDate = startDateStr.isEmpty() ? tournement.getStartDate()
-                    : LocalDate.parse(startDateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            LocalDate newStartDate = startDateStr.isEmpty() ? tournement.getStartDate() : LocalDate.parse(startDateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-            System.out.print("Enter new end date (dd/MM/yyyy) (or press Enter to keep current): ");
+            LOGGER.info("Enter new end date (dd/MM/yyyy) (or press Enter to keep current): ");
             String endDateStr = scanner.nextLine();
-            LocalDate newEndDate = endDateStr.isEmpty() ? tournement.getEndDate()
-                    : LocalDate.parse(endDateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            LocalDate newEndDate = endDateStr.isEmpty() ? tournement.getEndDate() : LocalDate.parse(endDateStr, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-            System.out.print("Enter new spectator count (or -1 to keep current): ");
+            LOGGER.info("Enter new spectator count (or -1 to keep current): ");
             int newSpectatorCount = scanner.nextInt();
             if (newSpectatorCount == -1) {
                 newSpectatorCount = tournement.getSpectatorCount();
@@ -166,107 +158,106 @@ public class TournementMenu {
                 ValidationUtil.validateDates(newStartDate, newEndDate);
                 Tournement updatedTournement = tournementController.editTournement(id, newTitle, newStartDate, newEndDate, newSpectatorCount);
                 if (updatedTournement != null) {
-                    System.out.println("Tournement updated successfully.");
+                    LOGGER.info("Tournement updated successfully.");
                 } else {
-                    System.out.println("Error updating tournement.");
+                    LOGGER.error("Error updating tournement.");
                 }
             } catch (IllegalArgumentException e) {
-                System.out.println("Error: " + e.getMessage());
+                LOGGER.error("Error: {}", e.getMessage());
             }
         } else {
-            System.out.println("Tournement not found.");
+            LOGGER.warn("Tournement not found.");
         }
     }
 
     private void deleteTournement() {
-        System.out.println("Deleting a tournement");
-        System.out.print("Enter tournement ID to delete: ");
+        LOGGER.info("Deleting a tournement");
+        LOGGER.info("Enter tournement ID to delete: ");
         Long id = scanner.nextLong();
         scanner.nextLine(); // Consume newline
 
         try {
             tournementController.deleteTournement(id);
-            System.out.println("Tournement deleted successfully.");
+            LOGGER.info("Tournement deleted successfully.");
         } catch (Exception e) {
-            System.out.println("Error deleting tournement: " + e.getMessage());
+            LOGGER.error("Error deleting tournement: {}", e.getMessage());
         }
     }
 
     private void displayTournement() {
-        System.out.println("Displaying a tournement");
-        System.out.print("Enter tournement ID to display: ");
+        LOGGER.info("Displaying a tournement");
+        LOGGER.info("Enter tournement ID to display: ");
         Long id = scanner.nextLong();
         scanner.nextLine(); // Consume newline
 
         Optional<Tournement> tournementOptional = tournementController.getTournement(id);
         if (tournementOptional.isPresent()) {
             Tournement tournement = tournementOptional.get();
-            System.out.println("Tournement details:");
-            System.out.println("ID: " + tournement.getId());
-            System.out.println("Title: " + tournement.getTitle());
-            System.out.println("Game: " + tournement.getGame().getName());
-            System.out.println("Start Date: " + tournement.getStartDate());
-            System.out.println("End Date: " + tournement.getEndDate());
-            System.out.println("Spectator count: " + tournement.getSpectatorCount());
-            System.out.println("Status: " + tournement.getStatus());
-            System.out.println("Participating teams:");
+            LOGGER.info("Tournement details:");
+            LOGGER.info("ID: {}", tournement.getId());
+            LOGGER.info("Title: {}", tournement.getTitle());
+            LOGGER.info("Game: {}", tournement.getGame().getName());
+            LOGGER.info("Start Date: {}", tournement.getStartDate());
+            LOGGER.info("End Date: {}", tournement.getEndDate());
+            LOGGER.info("Spectator count: {}", tournement.getSpectatorCount());
+            LOGGER.info("Status: {}", tournement.getStatus());
+            LOGGER.info("Participating teams:");
             for (Team team : tournement.getTeams()) {
-                System.out.println("- " + team.getName());
+                LOGGER.info("- {}", team.getName());
             }
         } else {
-            System.out.println("Tournement not found.");
+            LOGGER.warn("Tournement not found.");
         }
     }
 
     private void displayAllTournements() {
-        System.out.println("List of all tournements:");
+        LOGGER.info("List of all tournements:");
         List<Tournement> tournements = tournementController.getAllTournements();
         if (!tournements.isEmpty()) {
             for (Tournement tournement : tournements) {
                 String gameName = tournement.getGame() != null ? tournement.getGame().getName() : "N/A";
-                System.out.println("ID: " + tournement.getId() + ", Title: " + tournement.getTitle() + ", Game: "
-                        + gameName + ", Status: " + tournement.getStatus());
+                LOGGER.info("ID: {}, Title: {}, Game: {}, Status: {}", tournement.getId(), tournement.getTitle(), gameName, tournement.getStatus());
             }
         } else {
-            System.out.println("No tournements found.");
+            LOGGER.warn("No tournements found.");
         }
     }
 
     private void addTeamToTournement() {
-        System.out.println("Adding a team to a tournement");
-        System.out.print("Enter tournement ID: ");
+        LOGGER.info("Adding a team to a tournement");
+        LOGGER.info("Enter tournement ID: ");
         Long tournementId = scanner.nextLong();
-        System.out.print("Enter team ID to add: ");
+        LOGGER.info("Enter team ID to add: ");
         Long teamId = scanner.nextLong();
         scanner.nextLine(); // Consume newline
 
         try {
             tournementController.addTeamToTournement(tournementId, teamId);
-            System.out.println("Team successfully added to tournement.");
+            LOGGER.info("Team successfully added to tournement.");
         } catch (Exception e) {
-            System.out.println("Error adding team to tournement: " + e.getMessage());
+            LOGGER.error("Error adding team to tournement: {}", e.getMessage());
         }
     }
 
     private void removeTeamFromTournement() {
-        System.out.println("Removing a team from a tournement");
-        System.out.print("Enter tournement ID: ");
+        LOGGER.info("Removing a team from a tournement");
+        LOGGER.info("Enter tournement ID: ");
         Long tournementId = scanner.nextLong();
-        System.out.print("Enter team ID to remove: ");
+        LOGGER.info("Enter team ID to remove: ");
         Long teamId = scanner.nextLong();
         scanner.nextLine(); // Consume newline
 
         try {
             tournementController.removeTeamFromTournement(tournementId, teamId);
-            System.out.println("Team successfully removed from tournement.");
+            LOGGER.info("Team successfully removed from tournement.");
         } catch (Exception e) {
-            System.out.println("Error removing team from tournement: " + e.getMessage());
+            LOGGER.error("Error removing team from tournement: {}", e.getMessage());
         }
     }
 
     private void calculateEstimatedDuration() {
-        System.out.println("Calculating estimated duration of a tournement");
-        System.out.print("Enter tournement ID: ");
+        LOGGER.info("Calculating estimated duration of a tournement");
+        LOGGER.info("Enter tournement ID: ");
         Long tournementId = scanner.nextLong();
         scanner.nextLine(); // Consume newline
 
@@ -275,34 +266,34 @@ public class TournementMenu {
             Optional<Tournement> tournementOptional = tournementController.getTournement(tournementId);
             if (tournementOptional.isPresent()) {
                 Tournement tournement = tournementOptional.get();
-                System.out.println("The estimated duration of the tournement is " + tournement.getEstimatedDuration() + " minutes.");
+                LOGGER.info("The estimated duration of the tournement is {} minutes.", tournement.getEstimatedDuration());
             } else {
-                System.out.println("Tournement not found after calculation.");
+                LOGGER.warn("Tournement not found after calculation.");
             }
         } else {
-            System.out.println("Unable to calculate estimated duration for tournement.");
+            LOGGER.warn("Unable to calculate estimated duration for tournement.");
         }
     }
 
     private void changeTournementStatus() {
-        System.out.print("Enter tournement ID: ");
+        LOGGER.info("Enter tournement ID: ");
         Long tournementId = scanner.nextLong();
         scanner.nextLine(); // Consume newline
 
-        System.out.println("Choose the new status:");
-        System.out.println("1. PLANNED");
-        System.out.println("2. IN_PROGRESS");
-        System.out.println("3. COMPLETED");
-        System.out.println("4. CANCELED");
+        LOGGER.info("Choose the new status:");
+        LOGGER.info("1. PLANNED");
+        LOGGER.info("2. IN_PROGRESS");
+        LOGGER.info("3. COMPLETED");
+        LOGGER.info("4. CANCELED");
 
         int choice = -1;
         while (choice < 1 || choice > 4) {
-            System.out.print("Enter a number between 1 and 4: ");
+            LOGGER.info("Enter a number between 1 and 4: ");
             try {
                 choice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline
             } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a number.");
+                LOGGER.error("Invalid input. Please enter a number.");
                 scanner.nextLine(); // Clear invalid input
             }
         }
@@ -326,7 +317,7 @@ public class TournementMenu {
         }
 
         tournementController.updateTournementStatus(tournementId, newStatus);
-        System.out.println("Tournement status updated successfully.");
+        LOGGER.info("Tournement status updated successfully.");
     }
 
 }
